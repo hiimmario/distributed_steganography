@@ -4,6 +4,7 @@ from stegano import lsb
 from pathlib import Path
 import os
 import shutil
+import math
 
 import string
 import random
@@ -25,7 +26,7 @@ def split_str(seq, chunk, skip_tail=False):
 
 
 def distribution_channel(_pictures, _payload):
-    payload = _payload + "#######"
+    payload = _payload
     pictures = _pictures
     lenpl = len(payload)
     ctnpic = len(pictures)
@@ -39,7 +40,10 @@ def distribution_channel(_pictures, _payload):
 
         divider = lenpl/ctnpic
         print(divider)
-        print(split_str(payload, 25))
+        print(math.ceil(divider)) # WORKS
+        print(split_str(payload, math.ceil(divider)))
+
+        # todo auffüllen am ende der liste
 
     # without len pic > len payload implemented and lenpl > ctpic input
     # PIL.Image.DecompressionBombError: Image size (200900000 pixels) exceeds limit of 178956970 pixels, could be decompression bomb DOS attack.
@@ -93,9 +97,9 @@ for idx, p in enumerate(files):
             print("clear message\t " + clear_message + "\n")
 
         # only for dev
-    #     if idx == 10:
-    #         break
-    #
-    # # only for dev
-    # if idx == 10:
-    #     break
+        if idx == 10:
+            break
+
+    # only for dev
+    if idx == 10:
+        break
