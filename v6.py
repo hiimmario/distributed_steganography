@@ -26,7 +26,7 @@ def split_str(seq, chunk, skip_tail=False):
 
 
 def distribution_channel(_pictures, _payload):
-    payload = _payload
+    payload = _payload + "#####"
     pictures = _pictures
     lenpl = len(payload)
     ctnpic = len(pictures)
