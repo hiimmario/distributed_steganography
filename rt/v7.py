@@ -60,6 +60,12 @@ def distribution_channel(_pictures, _payload):
 # start
 cwd = os.getcwd()
 path_source = Path(cwd + "./images")
+
+
+# todo binary data encoding https://stackoverflow.com/questions/4911440/filess-binary-data-stored-as-variable-inside-python-file
+
+
+
 payload = open("payload.txt", "r").read()
 verbose = True
 filetype = ".png"
@@ -104,5 +110,7 @@ for idx, p in enumerate(files):
             print("clear message\t " + clear_message + "\n")
 
 print(concat_clear_message)
+
+
 
 # todo figure out max payload and count pictures
