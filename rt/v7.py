@@ -1,28 +1,20 @@
-# memepack: https://archive.org/details/HugeMemePack
-
 from stegano import lsb
 from pathlib import Path
 import os
 import shutil
 import math
-
 import string
 import random
+
 
 # source: https://stackoverflow.com/questions/2257441/random-string-generation-with-upper-case-letters-and-digits-in-python
 def id_generator(size=1, chars=string.ascii_uppercase + string.digits + string.ascii_lowercase):
     return "".join(random.choice(chars) for _ in range(size))
 
-# RecursionError: maximum recursion depth exceeded while calling a Python object
-# source: https://stackoverflow.com/questions/22571259/split-a-string-into-n-equal-parts
-def split_str(seq, chunk, skip_tail=False):
-    lst = []
-    if chunk <= len(seq):
-        lst.extend([seq[:chunk]])
-        lst.extend(split_str(seq[chunk:], chunk, skip_tail))
-    elif not skip_tail and seq:
-        lst.extend([seq])
-    return lst
+
+# https://stackoverflow.com/questions/22571259/split-a-string-into-n-equal-parts
+def split_str(seq, chunk):
+    return [seq[i:i + chunk] for i in range(0, len(seq), chunk)]
 
 
 def distribution_channel(_pictures, _payload):
@@ -39,16 +31,25 @@ def distribution_channel(_pictures, _payload):
     # without len pic > len payload implemented and lenpl > ctpic input
     # PIL.Image.DecompressionBombError: Image size (200900000 pixels) exceeds limit of 178956970 pixels, could be decompression bomb DOS attack.
     if lenpl > ctnpic:
-        if verbose:
-            print("payload gets distributed")
         divider = lenpl/ctnpic
-        plsplit = split_str(payload, math.ceil(divider))
-        rounded_divider = math.ceil(divider)
+        ceiled_divider = math.ceil(divider)
+        plsplit = split_str(payload, ceiled_divider)
         last_element = plsplit[-1]
-        filler = id_generator(rounded_divider - len(last_element))
+        filler = id_generator(ceiled_divider - len(last_element))
         fullend = last_element + filler
         plsplit[-1] = fullend
         payload = plsplit
+
+        if verbose:
+            print("payload gets distributed")
+            print("divider:\t" + str(divider))
+            print("rounded_divider:\t" + str(ceiled_divider))
+            print("last_element:\t" + str(last_element))
+            print("len last element:\t" + str(len(last_element)))
+            print("filler:\t" + str(filler))
+            print("len filler:\t" + str(len(filler)))
+            print("fullend:\t" + str(fullend))
+            print("len payload chunks:\t" + str(len(payload[0])))
 
     if ctnpic == lenpl:
         if verbose:
@@ -59,12 +60,9 @@ def distribution_channel(_pictures, _payload):
 
 # start
 cwd = os.getcwd()
-path_source = Path(cwd + "./images")
-
+path_source = Path(cwd + "./originals")
 
 # todo binary data encoding https://stackoverflow.com/questions/4911440/filess-binary-data-stored-as-variable-inside-python-file
-
-
 
 payload = open("payload.txt", "r").read()
 verbose = True
@@ -83,11 +81,14 @@ files = [p for p in path_source.iterdir() if p.is_file()]
 files, payload = distribution_channel(files, payload)
 
 if verbose:
-    print("payload")
+    print("count chunks payload:\t" + str(len(payload)))
+    print("count files:\t" + str(len(files)))
+    print("fully sepperated payload:")
     print(payload)
-    print("starting stenography")
+    print("starting stenography\n")
 
 concat_clear_message = ""
+
 
 # process files
 for idx, p in enumerate(files):
@@ -104,13 +105,17 @@ for idx, p in enumerate(files):
 
         if verbose:
             print(str(idx + 1) + "/" + str(len(files)))
-            print(" payload\t " + payload[idx])
+            print("payload\t " + payload[idx])
             print("original\t " + path_original)
             print("manipulated\t " + path_manipulated)
             print("clear message\t " + clear_message + "\n")
 
+        if idx == 1:
+            break
+
+    if idx == 1:
+        break
+
 print(concat_clear_message)
-
-
 
 # todo figure out max payload and count pictures

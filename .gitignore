@@ -1,4 +1,7 @@
 # Created by .ignore support plugin (hsz.mobi)
 .idea/
 rt/manipulated/
+rt/originals/
+bt/data/
+bt/__pycache__/
 venv/
