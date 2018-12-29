@@ -110,11 +110,11 @@ for idx, p in enumerate(files):
             print("manipulated\t " + path_manipulated)
             print("clear message\t " + clear_message + "\n")
 
-        if idx == 1:
-            break
+        # if idx == 1:
+        #     break
 
-    if idx == 1:
-        break
+    # if idx == 1:
+    #     break
 
 print(concat_clear_message)
 
