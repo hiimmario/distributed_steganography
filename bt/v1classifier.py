@@ -1,6 +1,11 @@
+# Generate dummy data
+# x_train = np.random.random((100, 100, 100, 3))
+# y_train = keras.utils.to_categorical(np.random.randint(10, size=(100, 1)), num_classes=10)
+# x_test = np.random.random((20, 100, 100, 3))
+# y_test = keras.utils.to_categorical(np.random.randint(10, size=(20, 1)), num_classes=10)
+
 import shutil
 from PIL import Image
-Image.MAX_IMAGE_PIXELS = 1000000000
 import os
 from pathlib import Path
 from random import shuffle
@@ -8,7 +13,11 @@ from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D
 import numpy as np
+from keras.optimizers import SGD
+from keras import metrics
+import matplotlib.pyplot as plt
 
+Image.MAX_IMAGE_PIXELS = 1000000000
 
 def get_image_size_statistics(dir):
     heights = []
@@ -114,25 +123,48 @@ print(training_data)
 
 trainImages = np.array([i[0] for i in training_data]).reshape(-1, 300, 300, 1)
 trainLabels = np.array([i[1] for i in training_data])
-print(trainLabels.shape)
-# trainLabels = trainLabels.reshape(1, -1)
 
+validationImages = trainImages[:]
 input_shape = (IMG_SIZE, IMG_SIZE, 1)
-num_classes = 2
 
+print(len(trainImages))
+print(len(trainLabels))
+
+x_train = trainImages[-100:]
+y_train = trainLabels[-100:]
+x_test = trainImages[0:len(trainImages)-100:]
+y_test = trainLabels[0:len(trainImages)-100:]
+
+print(len(x_train))
+print(len(y_train))
+print(len(x_test))
+print(len(y_test))
+
+# Convolution network
 model = Sequential()
-model.add(Conv2D(32, kernel_size=(3, 3),
-                 activation='relu',
-                 input_shape=input_shape))
+model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(300, 300, 1)))
+model.add(Conv2D(32, (3, 3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Dropout(0.25))
+
+model.add(Conv2D(64, (3, 3), activation='relu'))
 model.add(Conv2D(64, (3, 3), activation='relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Dropout(0.25))
+
 model.add(Flatten())
-model.add(Dense(128, activation='relu'))
+model.add(Dense(256, activation='relu'))
 model.add(Dropout(0.5))
-model.add(Dense(num_classes, activation='softmax'))
+model.add(Dense(2, activation='softmax'))
 
-model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=["mse", "mae", "mape", "cosine", "acc"])
 
-model.fit(trainImages, trainLabels, batch_size=10, epochs=5, verbose=1)
-#todo bug
+model.fit(x_train, y_train, batch_size=32, epochs=2, verbose=1)
+score = model.evaluate(x_test, y_test, batch_size=32)
+
+print(score)
+
+plt.plot(model.history['acc'])
+plt.plot(score.history['acc'])
+plt.show()

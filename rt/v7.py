@@ -28,8 +28,6 @@ def distribution_channel(_pictures, _payload):
             print("payload gets padded")
         payload = payload + id_generator(ctnpic-lenpl)
 
-    # without len pic > len payload implemented and lenpl > ctpic input
-    # PIL.Image.DecompressionBombError: Image size (200900000 pixels) exceeds limit of 178956970 pixels, could be decompression bomb DOS attack.
     if lenpl > ctnpic:
         divider = lenpl/ctnpic
         ceiled_divider = math.ceil(divider)
@@ -59,8 +57,8 @@ def distribution_channel(_pictures, _payload):
 
 
 # start
-cwd = os.getcwd()
-path_source = Path(cwd + "./originals")
+
+path_source = Path("./originals")
 
 # todo binary data encoding https://stackoverflow.com/questions/4911440/filess-binary-data-stored-as-variable-inside-python-file
 
@@ -117,5 +115,3 @@ for idx, p in enumerate(files):
     #     break
 
 print(concat_clear_message)
-
-# todo figure out max payload and count pictures
