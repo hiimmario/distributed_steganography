@@ -5,3 +5,4 @@ rt/originals/
 bt/data/
 bt/__pycache__/
 venv/
+bt/v1classifier.py

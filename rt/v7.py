@@ -5,7 +5,8 @@ import shutil
 import math
 import string
 import random
-
+from PIL import Image
+Image.MAX_IMAGE_PIXELS = 1000000000
 
 # source: https://stackoverflow.com/questions/2257441/random-string-generation-with-upper-case-letters-and-digits-in-python
 def id_generator(size=1, chars=string.ascii_uppercase + string.digits + string.ascii_lowercase):
