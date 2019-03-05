@@ -93,7 +93,7 @@ def move_images():
 
 
 # move images from rt to bt folder forced overwrite!
-# move_images()
+move_images()
 
 IMG_SIZE = 300
 # get image size statistics manipulated

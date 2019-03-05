@@ -8,12 +8,11 @@ import random
 from PIL import Image
 Image.MAX_IMAGE_PIXELS = 1000000000
 
-# source: https://stackoverflow.com/questions/2257441/random-string-generation-with-upper-case-letters-and-digits-in-python
+
 def id_generator(size=1, chars=string.ascii_uppercase + string.digits + string.ascii_lowercase):
     return "".join(random.choice(chars) for _ in range(size))
 
 
-# https://stackoverflow.com/questions/22571259/split-a-string-into-n-equal-parts
 def split_str(seq, chunk):
     return [seq[i:i + chunk] for i in range(0, len(seq), chunk)]
 
