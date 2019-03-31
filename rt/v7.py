@@ -12,16 +12,11 @@ Image.MAX_IMAGE_PIXELS = 1000000000
 def id_generator(size=1, chars=string.ascii_uppercase + string.digits + string.ascii_lowercase):
     return "".join(random.choice(chars) for _ in range(size))
 
-
-def split_str(seq, chunk):
-    return [seq[i:i + chunk] for i in range(0, len(seq), chunk)]
-
-
-def distribution_channel(_pictures, _payload):
-    payload = _payload
-    pictures = _pictures
+def distribution_channel(ctnpic, payload, distribute):
     lenpl = len(payload)
-    ctnpic = len(pictures)
+
+    if not distribute:
+        return [payload] * ctnpic
 
     if lenpl < ctnpic:
         if verbose:
@@ -31,7 +26,7 @@ def distribution_channel(_pictures, _payload):
     if lenpl > ctnpic:
         divider = lenpl/ctnpic
         ceiled_divider = math.ceil(divider)
-        plsplit = split_str(payload, ceiled_divider)
+        plsplit = [payload[i:i + ceiled_divider] for i in range(0, len(payload), ceiled_divider)]
         last_element = plsplit[-1]
         filler = id_generator(ceiled_divider - len(last_element))
         fullend = last_element + filler
@@ -53,65 +48,67 @@ def distribution_channel(_pictures, _payload):
         if verbose:
             print("wow")
 
-    return pictures, payload
+    return payload
 
 
 # start
-
-path_source = Path("./originals")
-
-# todo binary data encoding https://stackoverflow.com/questions/4911440/filess-binary-data-stored-as-variable-inside-python-file
-
 payload = open("payload.txt", "r").read()
 verbose = True
-filetype = ".png"
+file_type = ".png"
 
-# forced overwrite of destination folder
-directory_manipulated = "./manipulated"
-if os.path.exists(directory_manipulated):
-    shutil.rmtree(directory_manipulated)
-os.makedirs(directory_manipulated)
+original_images_path = Path("./originals")
+manipulated_images_path = "./training_data/manipulated/"
+resized_gray_originals_path = "./training_data/originals/"
 
-# loop all files
-files = [p for p in path_source.iterdir() if p.is_file()]
+# forced overwrite
+if os.path.exists(manipulated_images_path):
+    shutil.rmtree(manipulated_images_path)
+os.makedirs(manipulated_images_path)
+
+if os.path.exists(resized_gray_originals_path):
+    shutil.rmtree(resized_gray_originals_path)
+os.makedirs(resized_gray_originals_path)
+
+# loop all files IMPORTANT only pictures in directory
+
+original_images = [Image.open(p) for p in Path(original_images_path).iterdir() if p.is_file()]
+
+# TODO alle original_images nach trainingdata originals resized und grayscale speichern
+for idx, image in enumerate(original_images):
+    # make the picture grayscale but save it as rgb for steghide
+    image = image.resize((200, 100), Image.ANTIALIAS).convert("LA").convert("RGB")
+    image.save(resized_gray_originals_path + str(idx) + file_type)
+
+original_images_paths = [p for p in Path(resized_gray_originals_path).iterdir() if p.is_file()]
 
 # distribute payload on files
-files, payload = distribution_channel(files, payload)
+payload = distribution_channel(len(original_images_paths), payload, False)
 
 if verbose:
     print("count chunks payload:\t" + str(len(payload)))
-    print("count files:\t" + str(len(files)))
+    print("count files:\t" + str(len(original_images_paths)))
     print("fully sepperated payload:")
     print(payload)
-    print("starting stenography\n")
+    print("starting steganography\n")
 
 concat_clear_message = ""
 
-
 # process files
-for idx, p in enumerate(files):
+for idx, p in enumerate(original_images_paths):
     with p.open() as file:
-        path_original = file.name
-        path_manipulated = "./manipulated/"
-        path_manipulated = path_manipulated + str(idx) + filetype
+        original_image_name = file.name
+        manipulated_image_path = manipulated_images_path + str(idx) + file_type
         pl = payload[idx]
-        secret = lsb.hide(path_original, pl)
-        secret.save(path_manipulated)
-        clear_message = lsb.reveal(path_manipulated)
-
+        secret = lsb.hide(original_image_name, pl)
+        secret.save(manipulated_image_path)
+        clear_message = lsb.reveal(manipulated_image_path)
         concat_clear_message += clear_message
 
         if verbose:
-            print(str(idx + 1) + "/" + str(len(files)))
+            print(str(idx + 1) + "/" + str(len(original_images_paths)))
             print("payload\t " + payload[idx])
-            print("original\t " + path_original)
-            print("manipulated\t " + path_manipulated)
+            print("original\t " + original_image_name)
+            print("manipulated\t " + manipulated_image_path)
             print("clear message\t " + clear_message + "\n")
-
-        # if idx == 1:
-        #     break
-
-    # if idx == 1:
-    #     break
 
 print(concat_clear_message)
